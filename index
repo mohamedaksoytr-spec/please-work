@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Falling in love with us again — Quiz</title>
+  <style>
+    :root{
+      --cherry: #5b0711; /* deep cherry wine red */
+      --cherry-2: #6f0b17;
+      --accent: #ffffff;
+      --btn-bg: #fff;
+      --btn-text: #5b0711;
+      --correct: #28a745;
+      --wrong: #dc3545;
+      --glass: rgba(255,255,255,0.06);
+      --card-bg: rgba(255,255,255,0.03);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      color:var(--accent);
+      background: linear-gradient(180deg, var(--cherry) 0%, var(--cherry-2) 100%);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+    }
+
+    .app{
+      width:100%;
+      max-width:860px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:14px;
+      padding:28px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.45);
+      position:relative;
+      overflow:hidden;
+    }
+
+    /* large emoji "background" per-question */
+    .bg-emoji{
+      position:absolute;
+      right: -10%;
+      top: -10%;
+      font-size:220px;
+      line-height:1;
+      opacity:0.06;
+      pointer-events:none;
+      transform: rotate(-12deg);
+      user-select:none;
+    }
+
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:16px;
+    }
+    .title{
+      font-size:20px;
+      font-weight:700;
+      letter-spacing:0.6px;
+    }
+    .subtitle{
+      color:rgba(255,255,255,0.85);
+      font-size:13px;
+      margin-top:4px;
+    }
+
+    .toggle{
+      font-size:13px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      color:rgba(255,255,255,0.9);
+    }
+    .switch{
+      width:44px;
+      height:24px;
+      background:rgba(255,255,255,0.12);
+      border-radius:999px;
+      padding:3px;
+      display:inline-flex;
+      align-items:center;
+      cursor:pointer;
+      position:relative;
+    }
+    .knob{
+      width:18px;
+      height:18px;
+      background:#fff;
+      border-radius:50%;
+      transform: translateX(0);
+      transition:0.18s ease;
+    }
+    .switch.on{ background: rgba(40,167,69,0.22); }
+    .switch.on .knob{ transform: translateX(20px); }
+
+    main{
+      margin-top:10px;
+    }
+
+    .card{
+      background: var(--card-bg);
+      border-radius:10px;
+      padding:24px;
+      min-height:240px;
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+      align-items:stretch;
+      justify-content:center;
+      position:relative;
+    }
+
+    .center{
+      text-align:center;
+    }
+
+    .welcome-title{
+      font-size:28px;
+      font-weight:800;
+      margin:0;
+    }
+    .welcome-sub{
+      margin:0;
+      color:rgba(255,255,255,0.9);
+      font-size:15px;
+    }
+
+    .prompt{
+      font-size:18px;
+      font-weight:600;
+      margin:8px 0 0 0;
+    }
+
+    .choices{
+      display:flex;
+      gap:12px;
+      justify-content:center;
+      margin-top:12px;
+      flex-wrap:wrap;
+    }
+
+    .btn{
+      background:var(--btn-bg);
+      color:var(--btn-text);
+      border-radius:10px;
+      padding:10px 18px;
+      border:2px solid rgba(0,0,0,0.06);
+      font-weight:700;
+      cursor:pointer;
+      min-width:120px;
+      text-align:center;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+      transition: transform .12s ease, box-shadow .12s ease;
+    }
+    .btn:active{ transform: translateY(1px) }
+    .btn.secondary{
+      background: transparent;
+      color:var(--accent);
+      border: 2px dashed rgba(255,255,255,0.12);
+      font-weight:700;
+    }
+
+    .options{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+      margin-top:6px;
+    }
+
+    .option{
+      padding:12px 14px;
+      background: rgba(255,255,255,0.06);
+      border-radius:10px;
+      cursor:pointer;
+      border:2px solid transparent;
+      transition: transform .08s ease, border-color .12s ease, background .12s ease;
+      font-weight:700;
+    }
+    .option:hover{ transform: translateY(-3px) }
+
+    .option.correct{
+      background: linear-gradient(90deg, rgba(40,167,69,0.14), rgba(40,167,69,0.08));
+      border-color: rgba(40,167,69,0.35);
+      color:var(--accent);
+    }
+    .option.wrong{
+      background: linear-gradient(90deg, rgba(220,53,69,0.10), rgba(220,53,69,0.04));
+      border-color: rgba(220,53,69,0.28);
+      color:var(--accent);
+    }
+
+    .feedback{
+      padding:10px 12px;
+      border-radius:8px;
+      font-weight:700;
+      max-width:720px;
+      margin:0 auto;
+      text-align:center;
+      display:none;
+    }
+    .feedback.show{ display:block }
+
+    .feedback.success{ background: rgba(40,167,69,0.14); color:var(--accent); border: 1px solid rgba(40,167,69,0.22) }
+    .feedback.error{ background: rgba(220,53,69,0.10); color:var(--accent); border: 1px solid rgba(220,53,69,0.18) }
+
+    .controls{
+      display:flex;
+      gap:8px;
+      justify-content:center;
+      margin-top:8px;
+    }
+
+    .footer-note{
+      margin-top:14px;
+      text-align:center;
+      font-size:13px;
+      color:rgba(255,255,255,0.8);
+    }
+
+    /* small screens */
+    @media (max-width:560px){
+      .options{ grid-template-columns: 1fr; }
+      .bg-emoji{ font-size:140px; right:-30px; top:-20px; opacity:0.06 }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="app" role="application" aria-label="Falling in love with us again quiz">
+    <div class="bg-emoji" id="bgEmoji">💞</div>
+
+    <header>
+      <div>
+        <div class="title">Falling in love with us again</div>
+        <div class="subtitle">A tiny quiz to remember how much we fell in love</div>
+      </div>
+
+      <div class="toggle" title="Toggle per-question emoji backgrounds">
+        <div style="font-size:13px">Per-question background</div>
+        <div id="bgSwitch" class="switch" role="button" aria-pressed="false">
+          <div class="knob"></div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="card" id="card">
+        <!-- Welcome / Start screen -->
+        <div id="startScreen" class="center">
+          <h1 class="welcome-title">Welcome to quiz of love</h1>
+          <p class="welcome-sub">Make you remember how much we fell in love — are you ready?</p>
+
+          <div class="choices" style="margin-top:18px">
+            <button class="btn" id="btnYes">Yes ❤️</button>
+            <button class="btn secondary" id="btnNo">Not 😅</button>
+          </div>
+        </div>
+
+        <!-- Question screen (hidden initially) -->
+        <div id="questionScreen" style="display:none; width:100%">
+          <div id="questionHeader" class="center">
+            <div id="qNumber" style="font-size:13px; opacity:0.9">Question 1</div>
+            <h2 id="qText" style="margin:6px 0 0 0;font-size:20px">...</h2>
+            <div id="qSub" style="margin-top:6px; font-size:13px; color:rgba(255,255,255,0.9)"></div>
+          </div>
+
+          <div class="options" id="optionsContainer" style="margin-top:12px">
+            <!-- options injected here -->
+          </div>
+
+          <div id="feedback" class="feedback"></div>
+
+          <div class="controls">
+            <button id="nextBtn" class="btn" style="display:none">Next ➜</button>
+            <button id="quitBtn" class="btn secondary">Quit</button>
+          </div>
+        </div>
+
+        <!-- End screen -->
+        <div id="endScreen" class="center" style="display:none">
+          <h2 style="font-size:24px; margin-bottom:6px">You finished the quiz 💖</h2>
+          <p style="margin:0 0 12px 0; font-weight:700">Thank you for playing with your boyfriend</p>
+          <div class="choices">
+            <button class="btn" id="restartBtn">Play again</button>
+            <button class="btn secondary" id="closeBtn">Close</button>
+          </div>
+        </div>
+      </section>
+
+      <p class="footer-note">Tip: Only the correct answer will let you proceed. Wrong choices will ask you to try again — because true love is patient 😉</p>
+    </main>
+  </div>
+
+  <script>
+    // --- QUIZ DATA ---
+    // useSameBackground default true (user asked "keep them all the same background")
+    let usePerQuestionBg = false;
+
+    const quiz = [
+      {
+        id: 1,
+        title: 'Cutest moment of this relationship?',
+        subtitle: 'Pick the cutest memory',
+        options: [
+          'running under rain',
+          'ship time in bosphour',
+          'last trip to ukraine',
+          'this quiz'
+        ],
+        correctIndex: 3, // option 4 is correct
+        correctMessage: 'Good job — you are doing amazing work, love you ❤️',
+        wrongMessage: 'Do wrong — choose another answer',
+        emoji: '🌧️'
+      },
+      {
+        id: 2,
+        title: 'How much your boyfriend loves you?',
+        subtitle: 'Pick the best answer',
+        options: [
+          'soo much',
+          'you know i love you right?',
+          'like so much',
+          'like the universe because it is always expanding'
+        ],
+        correctIndex: 3, // option 4
+        correctMessage: 'Look — your boyfriend never finishes ✨',
+        wrongMessage: 'Oops — try again, love ❤️',
+        emoji: '🌌'
+      },
+      {
+        id: 3,
+        title: 'How happy you are your boyfriend made this?',
+        subtitle: 'Be honest 😉',
+        options: [
+          'meeh',
+          'he better to make up for the fight',
+          'bare minumum',
+          'like so much'
+        ],
+        correctIndex: 2, // option 3 (bare minumum)
+        correctMessage: 'Be ready for more of this in our life. 💪',
+        wrongMessage: 'Not quite — choose another answer',
+        emoji: '🙂'
+      },
+      {
+        id: 4,
+        title: 'What does your boyfriend love most about you?',
+        subtitle: 'Choose one',
+        options: [
+          'when you try to speak arabic',
+          'when you try to be funny and can\'t',
+          'because you are beautiful and hard to achieve',
+          'all above except hard to achieve'
+        ],
+        correctIndex: 3, // option 4
+        correctMessage: 'Aww you aced exam — good job, love you 💕',
+        wrongMessage: 'Try again — you\'re so close!',
+        emoji: '😍'
+      }
+    ];
+
+    // --- ELEMENTS ---
+    const startScreen = document.getElementById('startScreen');
+    const questionScreen = document.getElementById('questionScreen');
+    const endScreen = document.getElementById('endScreen');
+    const btnYes = document.getElementById('btnYes');
+    const btnNo = document.getElementById('btnNo');
+    const optionsContainer = document.getElementById('optionsContainer');
+    const qText = document.getElementById('qText');
+    const qNumber = document.getElementById('qNumber');
+    const qSub = document.getElementById('qSub');
+    const feedbackEl = document.getElementById('feedback');
+    const nextBtn = document.getElementById('nextBtn');
+    const quitBtn = document.getElementById('quitBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const closeBtn = document.getElementById('closeBtn');
+    const bgEmoji = document.getElementById('bgEmoji');
+    const bgSwitch = document.getElementById('bgSwitch');
+
+    // state
+    let current = -1;
+    let answeredCorrect = false;
+
+    // Initialize UI
+    function setBgEmoji(e){
+      bgEmoji.textContent = e || '💞';
+    }
+    setBgEmoji('💞');
+
+    // Toggle per-question background switch
+    function setSwitch(on){
+      usePerQuestionBg = !!on;
+      if(usePerQuestionBg){
+        bgSwitch.classList.add('on');
+        bgSwitch.setAttribute('aria-pressed','true');
+      } else {
+        bgSwitch.classList.remove('on');
+        bgSwitch.setAttribute('aria-pressed','false');
+        setBgEmoji('💞'); // default
+      }
+      // update current question background if visible
+      if(current >= 0 && usePerQuestionBg){
+        setBgEmoji(quiz[current].emoji);
+      }
+    }
+
+    bgSwitch.addEventListener('click', ()=>{
+      setSwitch(!usePerQuestionBg);
+    });
+
+    // Start quiz
+    function startQuiz(){
+      startScreen.style.display = 'none';
+      questionScreen.style.display = '';
+      current = 0;
+      showQuestion(current);
+    }
+
+    btnYes.addEventListener('click', startQuiz);
+    btnNo.addEventListener('click', ()=>{
+      // playful message and still proceed
+      alert('That\'s okay — I know you love me secretly. Let\'s play anyway ❤️');
+      startQuiz();
+    });
+
+    // show a specific question
+    function showQuestion(index){
+      const q = quiz[index];
+      qNumber.textContent = `Question ${index+1} of ${quiz.length}`;
+      qText.textContent = q.title;
+      qSub.textContent = q.subtitle || '';
+      optionsContainer.innerHTML = '';
+      feedbackEl.className = 'feedback';
+      feedbackEl.style.display = 'none';
+      nextBtn.style.display = 'none';
+      answeredCorrect = false;
+
+      // set background emoji (either same or per-question)
+      if(usePerQuestionBg){
+        setBgEmoji(q.emoji || '💞');
+      } else {
+        setBgEmoji('💞');
+      }
+
+      // render options
+      q.options.forEach((opt, i) => {
+        const div = document.createElement('div');
+        div.className = 'option';
+        div.setAttribute('role','button');
+        div.setAttribute('tabindex','0');
+        div.dataset.index = i;
+        div.innerText = opt;
+        // keyboard support
+        div.addEventListener('keydown', (ev)=>{
+          if(ev.key === 'Enter' || ev.key === ' '){
+            ev.preventDefault();
+            selectOption(i, div);
+          }
+        });
+        div.addEventListener('click', ()=> selectOption(i, div));
+        optionsContainer.appendChild(div);
+      });
+    }
+
+    function selectOption(selectedIdx, el){
+      if(answeredCorrect) return; // once correct, wait for next
+
+      const q = quiz[current];
+
+      // If correct
+      if(selectedIdx === q.correctIndex){
+        answeredCorrect = true;
+        // highlight the selected option green
+        el.classList.add('correct');
+        // show success message
+        feedbackEl.textContent = q.correctMessage;
+        feedbackEl.className = 'feedback success show';
+        // provide special extra messages for some questions (user-specified)
+        // Q1: also show "good job you are doing amazing work love you" (it's set as correctMessage)
+        // Q2: they requested the output "look your boyfriend never finishes" -> we put it in correctMessage
+        // Q3: "be ready for more of this in our life." -> in correctMessage
+        // Q4: "aww you aced exam good job love you" -> in correctMessage
+        // show the correct option green and disable others visually
+        const optionEls = optionsContainer.querySelectorAll('.option');
+        optionEls.forEach((o, idx)=>{
+          o.style.pointerEvents = 'none';
+          if(idx !== selectedIdx){
+            o.style.opacity = '0.75';
+          }
+        });
+
+        // reveal next button (or finish)
+        if(current < quiz.length - 1){
+          nextBtn.style.display = '';
+          nextBtn.focus();
+        } else {
+          // finish
+          setTimeout(()=> showEnd(), 900);
+        }
+      } else {
+        // wrong selection
+        el.classList.add('wrong');
+        // small shake or visual hint by tinting for a moment
+        feedbackEl.textContent = quiz[current].wrongMessage;
+        feedbackEl.className = 'feedback error show';
+        // remove wrong highlight after a short time so she can try again
+        setTimeout(()=> {
+          el.classList.remove('wrong');
+          feedbackEl.className = 'feedback';
+          feedbackEl.style.display = 'none';
+        }, 1200);
+      }
+    }
+
+    nextBtn.addEventListener('click', ()=>{
+      if(!answeredCorrect) return;
+      current++;
+      if(current < quiz.length){
+        showQuestion(current);
+        // scroll to top of card (if on small screens)
+        document.querySelector('.app').scrollTop = 0;
+      } else {
+        showEnd();
+      }
+    });
+
+    quitBtn.addEventListener('click', ()=>{
+      if(confirm('Are you sure you want to quit the quiz?')){
+        // go back to start
+        resetToStart();
+      }
+    });
+
+    restartBtn.addEventListener('click', resetToStart);
+    closeBtn.addEventListener('click', ()=>{
+      // hide app card (simple action)
+      document.querySelector('.app').style.display = 'none';
+    });
+
+    function showEnd(){
+      questionScreen.style.display = 'none';
+      endScreen.style.display = '';
+      setBgEmoji('💖');
+    }
+
+    function resetToStart(){
+      current = -1;
+      answeredCorrect = false;
+      endScreen.style.display = 'none';
+      questionScreen.style.display = 'none';
+      startScreen.style.display = '';
+      setBgEmoji('💞');
+    }
+
+    // Initialize: keep all same background by default per user's last instruction
+    setSwitch(false);
+
+    // Accessibility: allow keyboard to start with Enter on start buttons
+    [btnYes, btnNo].forEach(b=>{
+      b.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') b.click(); });
+    });
+
+    // small UX: when navigating questions, remove any pre-filled inline styles for opacity (so reused)
+    // handled in showQuestion which re-renders options
+
+    // Done: the quiz shows one question at a time and prevents progressing until the correct answer is chosen.
+    // You can toggle "Per-question background" at top-right to use emoji backgrounds per question, otherwise it stays the same cherry background.
+  </script>
+</body>
+</html>
